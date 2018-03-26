@@ -4,3 +4,6 @@ config.py
 __pycache__/
 migrations/
 app.db
+venv/
+*.png
+*.txt

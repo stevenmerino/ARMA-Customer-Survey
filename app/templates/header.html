@@ -15,7 +15,11 @@
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
         {% else %}
+        <a href="{{ url_for('address') }}">Save Address</a>
         <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin') }}">Admin</a>
         {% endif %}
     </div>
     <hr>
