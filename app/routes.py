@@ -16,9 +16,11 @@ from flask_principal import identity_loaded, RoleNeed, UserNeed, Permission
 
 @app.route('/')
 @app.route('/index')
-@login_required
 def index():
-    return render_template('index.html', title='Home')
+    if current_user.is_authenticated:
+        return render_template('index.html', title='Home')
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -54,6 +56,12 @@ def address():
         return redirect(url_for('login'))
     return render_template('address.html', title='Save Address', form=form)
 
+@app.route('/addresses')
+@login_required
+def show_address():
+    addresses = Address.query.all()
+    return render_template('addresses.html', title='Address List', addresses=addresses)
+
 
 @app.route('/logout')
 def logout():
@@ -85,7 +93,8 @@ admin_permission = Permission(RoleNeed('admin'))
 @app.route('/admin')
 @admin_permission.require(http_exception=403)
 def admin():
-    return render_template('admin.html', title='Admin Dashboard')
+    users = User.query.all()
+    return render_template('admin.html', title='Admin Dashboard', users=users)
 
 
 @identity_loaded.connect_via(app)

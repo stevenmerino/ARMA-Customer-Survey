@@ -1,8 +1,30 @@
 {% extends "header.html" %}
 
-{% block content %}
-    <h1>Welcome to the admin dashboard, {{ current_user.username }}</h1>
-    {% for survey in surveys %}
-    <div><p>test</b></p></div>
+{% block app_content %}
+  <h2>Admin Dashboard</h2>
+  <p>User list</p>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Username</th>
+        <th>Email</th>
+        <th>Admin</th>
+        <th>Editor</th>
+        <th>Verified</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for user in users %}
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.is_admin }}</td>
+        <td>{{ user.is_editor }}</td>
+        <td>{{ user.is_verified }}</td>
+      </tr>
     {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

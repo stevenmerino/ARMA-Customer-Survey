@@ -3,7 +3,7 @@
 
 {% block app_content %}
     <h1>Welcome, {{ current_user.username }}</h1>
-    {% for survey in surveys %}
-    <div><p>test</b></p></div>
+    {% for address in addresses %}
+    <div><p>{{ address.street }}</b></p></div>
     {% endfor %}
 {% endblock %}
