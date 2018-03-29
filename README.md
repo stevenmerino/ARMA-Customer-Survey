@@ -1,4 +1,4 @@
-# ARMA-Survey-Management-System
+# ARMA Survey Management System
 University of Arizona Capstone
 
 
