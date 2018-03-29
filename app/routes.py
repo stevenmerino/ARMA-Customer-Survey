@@ -56,6 +56,7 @@ def address():
         return redirect(url_for('login'))
     return render_template('address.html', title='Save Address', form=form)
 
+
 @app.route('/addresses')
 @login_required
 def show_address():
