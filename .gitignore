@@ -3,7 +3,7 @@
 config.py
 __pycache__/
 migrations/
+notes/
 app.db
 venv/
 *.png
-*.txt
