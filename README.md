@@ -1,4 +1,4 @@
-# ARMA-Customer-Survey
+# ARMA-Survey-Management-System
 University of Arizona Capstone
 
 
@@ -11,7 +11,7 @@ Configure and rename `config_template.py` to `config.py`\
 `flask db migrate -m "users table"`\
 `flask db upgrade`\
 Run: `flask run`\
-Enter `http://localhost:5000/` in browser\
+Enter `http://localhost:5000/` in browser
 
 ## Prerequisites
 [Requirements](requirements.md)
