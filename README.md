@@ -14,4 +14,4 @@ Run: `flask run`\
 Enter `http://localhost:5000/` in browser
 
 ## Prerequisites
-[Requirements](requirements.md)
+[Requirements](requirements.txt)
