@@ -20,7 +20,7 @@ class AddressForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired(), Length(min=5, max=15, message="Username must be between 5 and 15 characters."), Regexp('^\w+$', message="Username must contain only letters numbers or underscore")])
+    username = StringField("Username", validators=[DataRequired(), Length(min=4, max=15, message="Username must be between 5 and 15 characters."), Regexp('^\w+$', message="Username must contain only letters numbers or underscore")])
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     password2 = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo("password")])

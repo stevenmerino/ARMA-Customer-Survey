@@ -22,16 +22,15 @@
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
        {% if current_user.is_authenticated %}
-         <li><a href="#">Browse</a></li>
-         <li><a href="#">Search</a></li>
-         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">View <span class="caret"></span></a>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Browse<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#">View Speakers</a></li>
-            <li><a href="#">View Events</a></li>
-            <li><a href="#">View Surveys</a></li>
+            <li><a href="#">Speakers</a></li>
+            <li><a href="#">Events</a></li>
+            <li><a href="#">Surveys</a></li>
           </ul>
         </li>
+        <li><a href="#">Search</a></li>
         {% endif %}
       </ul>
       <ul class="nav navbar-nav navbar-right">
