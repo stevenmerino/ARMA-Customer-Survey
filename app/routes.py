@@ -5,14 +5,32 @@ from app import db
 from app.forms import LoginForm
 from app.forms import RegistrationForm
 from app.forms import AddressForm
+from app.forms import SpeakerForm
+from app.forms import EventForm
+from app.forms import SurveyForm
 
 from app.models import User
 from app.models import Address
+from app.models import Speaker
+from app.models import Event
+from app.models import Survey
+
 from werkzeug.urls import url_parse
 
 from flask_principal import Identity, AnonymousIdentity, identity_changed
 from flask_principal import identity_loaded, RoleNeed, UserNeed, Permission
 
+admin_permission = Permission(RoleNeed('admin'))
+editor_permission = Permission(RoleNeed('editor'))
+verified_permission = Permission(RoleNeed('verified'))
+
+##### fix wtforms-sqlalchemy query factory bug
+import wtforms_sqlalchemy.fields as f
+def get_pk_from_identity(obj):
+    cls, key = f.identity_key(instance=obj)[:2]
+    return ':'.join(f.text_type(x) for x in key)
+f.get_pk_from_identity = get_pk_from_identity
+#######
 
 @app.route('/')
 @app.route('/index')
@@ -44,24 +62,25 @@ def login():
     return render_template('login.html', title='Sign In', form=form)
 
 
-@app.route('/address', methods=['GET', 'POST'])
-@login_required
-def address():
-    form = AddressForm()
-    if form.validate_on_submit():
-        address = Address(is_event=False, street=form.street.data, city=form.city.data, state=form.state.data, zip=form.zip.data)
-        db.session.add(address)
-        db.session.commit()
-        flash("Address saved.")
-        return redirect(url_for('login'))
-    return render_template('address.html', title='Save Address', form=form)
+# @app.route('/address', methods=['GET', 'POST'])
+# @login_required
+# def address():
+#     form = AddressForm()
+#     if form.validate_on_submit():
+#         address = Address(is_event=False, street=form.street.data, city=form.city.data, state=form.state.data, zip=form.zip.data)
+#         db.session.add(address)
+#         db.session.commit()
+#         flash("Address saved.")
+#         return redirect(url_for('login'))
+#     return render_template('address.html', title='Save Address', form=form)
 
 
-@app.route('/addresses')
-@login_required
-def show_address():
-    addresses = Address.query.all()
-    return render_template('addresses.html', title='Address List', addresses=addresses)
+# @app.route('/addresses')
+# @login_required
+# @verified_permission.require(http_exception=403)
+# def show_address():
+#     addresses = Address.query.all()
+#     return render_template('addresses.html', title='Address List', addresses=addresses)
 
 
 @app.route('/logout')
@@ -88,14 +107,124 @@ def register():
     return render_template('register.html', title="Register", form=form)
 
 
-admin_permission = Permission(RoleNeed('admin'))
-
-
 @app.route('/admin')
 @admin_permission.require(http_exception=403)
 def admin():
     users = User.query.all()
     return render_template('admin.html', title='Admin Dashboard', users=users)
+
+
+@app.route('/update/admin/<username>')
+@login_required
+@admin_permission.require(http_exception=403)
+def admin_update(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    user.is_admin = not user.is_admin
+    db.session.commit()
+    return redirect(url_for('admin'))
+
+
+@app.route('/update/editor/<username>')
+@login_required
+@admin_permission.require(http_exception=403)
+def editor_update(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    user.is_editor = not user.is_editor
+    db.session.commit()
+    return redirect(url_for('admin'))
+
+
+@app.route('/update/verified/<username>')
+@login_required
+@admin_permission.require(http_exception=403)
+def verified_update(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    user.is_verified = not user.is_verified
+    db.session.commit()
+    return redirect(url_for('admin'))
+
+
+@app.route('/show/speakers')
+@login_required
+@verified_permission.require(http_exception=403)
+def show_speakers():
+    speakers = Speaker.query.all()
+    return render_template('show_speakers.html', title='Speaker List', speakers=speakers)
+
+
+@app.route('/add/speaker', methods=['GET', 'POST'])
+@login_required
+@editor_permission.require(http_exception=403)
+def add_speaker():
+    form = SpeakerForm()
+    if form.validate_on_submit():
+        address = Address(street=form.street.data, city=form.city.data, state=form.state.data,
+                          zip=form.zip.data)
+        speaker = Speaker(first_name=form.first_name.data, last_name=form.last_name.data, email=form.email.data,
+                          phone=form.phone.data)
+        db.session.add(speaker)
+        db.session.commit()
+        speaker.address = address
+        db.session.commit()
+        flash("Speaker Saved.")
+        return redirect(url_for('index'))
+    return render_template('add_speaker.html', title='Add Speaker', form=form)
+
+
+@app.route('/show/events')
+@login_required
+@editor_permission.require(http_exception=403)
+def show_events():
+    events = Event.query.all()
+    return render_template('show_events.html', title='Event List', events=events)
+
+
+def speaker_query():
+    return Speaker.query
+
+
+@app.route('/add/event', methods=['GET', 'POST'])
+@login_required
+@editor_permission.require(http_exception=403)
+def add_event():
+    form = EventForm()
+    form.speakers.query_factory = speaker_query
+    if form.validate_on_submit():
+        address = Address(street=form.street.data, city=form.city.data, state=form.state.data, zip=form.zip.data)
+        event = Event(topic=form.topic.data, date=form.date.data)
+        db.session.add(event)
+        db.session.commit()
+        event.address = address
+        for speaker in form.speakers.data:
+            event.speakers.append(speaker)
+        db.session.commit()
+        flash("Event Saved.")
+        return redirect(url_for('index'))
+    return render_template('add_event.html', title='Add Event', form=form)
+
+
+def event_query():
+    return Event.query
+
+
+@app.route('/add/survey', methods=['GET', 'POST'])
+@login_required
+@editor_permission.require(http_exception=403)
+def add_survey():
+    form = SurveyForm()
+    form.event.query_factory = event_query
+    if form.validate_on_submit():
+        survey = Survey(value_1=form.value_1.data, value_2=form.value_2.data, value_3=form.value_3.data,
+                        value_4=form.value_4.data, value_5=form.value_5.data, speaker_1=form.speaker_1.data,
+                        speaker_2=form.speaker_2.data, speaker_3=form.speaker_3.data, content_1=form.content_1.data,
+                        content_2=form.content_2.data, facility_1=form.facility_1.data, facility_2=form.facility_2.data,
+                        response_1=form.response_1.data, response_2=form.response_2.data, response_3=form.response_3.data,
+                        response_4=form.response_4.data, name=form.name.data, email=form.email.data)
+        db.session.add(survey)
+        db.session.commit()
+        flash("Survey Saved.")
+        return redirect(url_for('index'))
+    return render_template('add_survey.html', title='Add Survey', form=form)
 
 
 @identity_loaded.connect_via(app)
@@ -107,5 +236,11 @@ def on_identity_loaded(sender, identity):
     if hasattr(current_user, 'is_admin'):
         if current_user.is_admin:
             identity.provides.add(RoleNeed('admin'))
-        #for role in current_user.roles:
-            #identity.provides.add(RoleNeed(role.name))
+
+    if hasattr(current_user, 'is_verified'):
+        if current_user.is_verified:
+            identity.provides.add(RoleNeed('verified'))
+
+    if hasattr(current_user, 'is_editor'):
+        if current_user.is_editor:
+            identity.provides.add(RoleNeed('editor'))

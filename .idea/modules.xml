@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ARMA-Customer-Survey.iml" filepath="$PROJECT_DIR$/.idea/ARMA-Customer-Survey.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/ARMA-Survey-Management-System.iml" filepath="$PROJECT_DIR$/.idea/ARMA-Survey-Management-System.iml" />
     </modules>
   </component>
 </project>

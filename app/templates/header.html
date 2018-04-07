@@ -25,8 +25,8 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Browse<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#">Speakers</a></li>
-            <li><a href="#">Events</a></li>
+            <li><a href="{{ url_for('show_speakers') }}">Speakers</a></li>
+            <li><a href="{{ url_for('show_events') }}">Events</a></li>
             <li><a href="#">Surveys</a></li>
           </ul>
         </li>
@@ -36,11 +36,11 @@
       <ul class="nav navbar-nav navbar-right">
         {% if current_user.is_editor %}
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Edit<span class="caret"></span></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Add<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="#">Add Speaker</a></li>
-            <li><a href="#">Add Event</a></li>
-            <li><a href="#">Add Survey</a></li>
+            <li><a href="{{ url_for('add_speaker') }}">Speaker</a></li>
+            <li><a href="{{ url_for('add_event') }}">Event</a></li>
+            <li><a href="{{ url_for('add_survey') }}">Survey</a></li>
           </ul>
         </li>
         {% endif %}
