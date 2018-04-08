@@ -1,0 +1,24 @@
+{% extends "header.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+  <h2>Event List</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Date</th>
+        <th>Speakers</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for event in events %}
+      <tr>
+        <td>{{ event.topic }}</td>
+        <td>{{ event.date }}</td>
+        <td>{% for speaker in event.speakers %}{{ speaker.first_name }} {{ speaker.last_name }} {% endfor %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

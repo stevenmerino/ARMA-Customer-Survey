@@ -1,0 +1,30 @@
+{% extends "header.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+  <h2>Survey List</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Value</th>
+        <th>Speaker</th>
+        <th>Content</th>
+        <th>Facility</th>
+        <th>Event ID</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for survey in average_surveys %}
+      <tr>
+        <td>{{ survey["id"] }}</td>
+        <td>{{ survey["value"] }}</td>
+        <td>{{ survey["speaker"] }}</td>
+        <td>{{ survey["content"] }}</td>
+        <td>{{ survey["facility"] }}</td>
+        <td>{{ survey["event_id"] }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
