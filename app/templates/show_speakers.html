@@ -9,6 +9,10 @@
         <th>Name</th>
         <th>Email</th>
         <th>Phone</th>
+        <th>Knowledge</th>
+        <th>Concise</th>
+        <th>Responsive</th>
+        <th>Overall</th>
       </tr>
     </thead>
     <tbody>
@@ -17,8 +21,18 @@
         <td>{{ speaker.first_name }} {{ speaker.last_name }}</td>
         <td>{{ speaker.email }}</td>
         <td>{{ speaker.phone }}</td>
+        <td>{{ '%0.1f' % speaker.knowledge_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.concise_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.responsive_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.overall_average|float }}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
+  {% if prev_url %}
+        <a class="pull-left" href="{{ prev_url }}">Previous Page</a>
+  {% endif %}
+  {% if next_url %}
+        <a class="pull-right" href="{{ next_url }}">Next Page</a>
+  {% endif %}
 {% endblock %}

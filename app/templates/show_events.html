@@ -21,4 +21,10 @@
     {% endfor %}
     </tbody>
   </table>
+  {% if prev_url %}
+        <a class="pull-left" href="{{ prev_url }}">Previous Page</a>
+  {% endif %}
+  {% if next_url %}
+        <a class="pull-right" href="{{ next_url }}">Next Page</a>
+  {% endif %}
 {% endblock %}

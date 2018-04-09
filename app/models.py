@@ -30,6 +30,11 @@ class Speaker(db.Model):
     address_id = db.Column(db.Integer, db.ForeignKey('address.id'))
     address = db.relationship('Address', back_populates='speaker')
 
+    knowledge_average = db.Column(db.Float)
+    concise_average = db.Column(db.Float)
+    responsive_average = db.Column(db.Float)
+    overall_average = db.Column(db.Float)
+
     def __repr__(self):
         return '{} {}'.format(self.first_name, self.last_name)
 
@@ -57,13 +62,23 @@ class Survey(db.Model):
     value_3 = db.Column(db.Integer)
     value_4 = db.Column(db.Integer)
     value_5 = db.Column(db.Integer)
+    value_average = db.Column(db.Float)
+
     speaker_1 = db.Column(db.Integer)
     speaker_2 = db.Column(db.Integer)
     speaker_3 = db.Column(db.Integer)
+    speaker_average = db.Column(db.Float)
+
     content_1 = db.Column(db.Integer)
     content_2 = db.Column(db.Integer)
+    content_average = db.Column(db.Float)
+
     facility_1 = db.Column(db.Integer)
     facility_2 = db.Column(db.Integer)
+    facility_average = db.Column(db.Float)
+
+    overall_average = db.Column(db.Float)
+
     response_1 = db.Column(db.String(144))
     response_2 = db.Column(db.String(144))
     response_3 = db.Column(db.String(144))

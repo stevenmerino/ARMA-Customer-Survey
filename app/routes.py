@@ -144,12 +144,37 @@ def verified_update(username):
     return redirect(url_for('admin'))
 
 
-@app.route('/show/speakers')
+def update_speaker(speaker):
+    knowledge = concise = responsive = count = 0
+    for event in speaker.events:
+        for survey in event.survey:
+            count += 1
+            knowledge += survey.speaker_1
+            concise += survey.speaker_2
+            responsive += survey.speaker_3
+    if count is not 0:
+        knowledge = knowledge / count
+        concise = concise / count
+        responsive = responsive / count
+        overall_average = (knowledge + concise + responsive) / 3
+        speaker.knowledge_average = knowledge
+        speaker.concise_average = concise
+        speaker.responsive_average = responsive
+        speaker.overall_average = overall_average
+        db.session.commit()
+
+
+@app.route('/show/speakers', methods=['GET', 'POST'])
 @login_required
 @verified_permission.require(http_exception=403)
 def show_speakers():
-    speakers = Speaker.query.all()
-    return render_template('show_speakers.html', title='Speaker List', speakers=speakers)
+    page = request.args.get('page', 1, type=int)
+    speakers = Speaker.query.order_by(Speaker.id.desc()).paginate(page, app.config['ITEMS_PER_PAGE'], False)
+    for speaker in speakers.items:
+        update_speaker(speaker)
+    next_url = url_for('show_speakers', page=speakers.next_num) if speakers.has_next else None
+    prev_url = url_for('show_speakers', page=speakers.prev_num) if speakers.has_prev else None
+    return render_template('show_speakers.html', title='Speaker List', speakers=speakers.items, next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/add/speaker', methods=['GET', 'POST'])
@@ -171,12 +196,15 @@ def add_speaker():
     return render_template('add_speaker.html', title='Add Speaker', form=form)
 
 
-@app.route('/show/events')
+@app.route('/show/events', methods=['GET', 'POST'])
 @login_required
 @editor_permission.require(http_exception=403)
 def show_events():
-    events = Event.query.all()
-    return render_template('show_events.html', title='Event List', events=events)
+    page = request.args.get('page', 1, type=int)
+    events = Event.query.order_by(Event.date.desc()).paginate(page, app.config['ITEMS_PER_PAGE'], False)
+    next_url = url_for('show_events', page=events.next_num) if events.has_next else None
+    prev_url = url_for('show_events', page=events.prev_num) if events.has_prev else None
+    return render_template('show_events.html', title='Event List', events=events.items, next_url=next_url, prev_url=prev_url)
 
 
 def speaker_query():
@@ -203,26 +231,15 @@ def add_event():
     return render_template('add_event.html', title='Add Event', form=form)
 
 
-def survey_average(surveys):
-    average_surveys = []
-    for survey in surveys:
-        print(type(survey))
-        value = (survey.value_1 + survey.value_2 + survey.value_3 + survey.value_4 + survey.value_5) / 5
-        speaker = (survey.speaker_1 + survey.speaker_2 + survey.speaker_3) / 3
-        content = (survey.content_1 + survey.content_2) / 2
-        facility = (survey.facility_1 + survey.facility_2) / 2
-        average_survey = {"id": survey.id, "value": value, "speaker": speaker, "content": content, "facility": facility, "event_id": survey.event_id}
-        average_surveys.append(average_survey)
-    return average_surveys
-
-
-@app.route('/show/surveys')
+@app.route('/show/surveys', methods=['GET', 'POST'])
 @login_required
 @editor_permission.require(http_exception=403)
 def show_surveys():
-    surveys = Survey.query.all()
-    average_surveys = survey_average(surveys=surveys)
-    return render_template('show_surveys.html', title='Survey List', average_surveys=average_surveys)
+    page = request.args.get('page', 1, type=int)
+    surveys = Survey.query.order_by(Survey.id.desc()).paginate(page, app.config['ITEMS_PER_PAGE'], False)
+    next_url = url_for('show_surveys', page=surveys.next_num) if surveys.has_next else None
+    prev_url = url_for('show_surveys', page=surveys.prev_num) if surveys.has_prev else None
+    return render_template('show_surveys.html', title='Survey List', surveys=surveys.items, next_url=next_url, prev_url=prev_url)
 
 
 
@@ -237,12 +254,21 @@ def add_survey():
     form = SurveyForm()
     form.event.query_factory = event_query
     if form.validate_on_submit():
+        value_average = (form.value_1.data + form.value_2.data + form.value_3.data + form.value_4.data + form.value_5.data) / 5
+        speaker_average = (form.speaker_1.data + form.speaker_2.data + form.speaker_3.data) / 3
+        content_average = (form.content_1.data + form.content_2.data) / 2
+        facility_average = (form.facility_1.data + form.facility_2.data) / 2
+        overall_average = (value_average + speaker_average + content_average + facility_average) / 4
         survey = Survey(value_1=form.value_1.data, value_2=form.value_2.data, value_3=form.value_3.data,
-                        value_4=form.value_4.data, value_5=form.value_5.data, speaker_1=form.speaker_1.data,
-                        speaker_2=form.speaker_2.data, speaker_3=form.speaker_3.data, content_1=form.content_1.data,
-                        content_2=form.content_2.data, facility_1=form.facility_1.data, facility_2=form.facility_2.data,
-                        response_1=form.response_1.data, response_2=form.response_2.data, response_3=form.response_3.data,
-                        response_4=form.response_4.data, name=form.name.data, email=form.email.data)
+                        value_4=form.value_4.data, value_5=form.value_5.data, value_average=value_average,
+                        speaker_1=form.speaker_1.data, speaker_2=form.speaker_2.data, speaker_3=form.speaker_3.data,
+                        speaker_average=speaker_average, content_1=form.content_1.data, content_2=form.content_2.data,
+                        content_average=content_average, facility_1=form.facility_1.data, facility_2=form.facility_2.data,
+                        facility_average=facility_average, response_1=form.response_1.data, response_2=form.response_2.data,
+                        response_3=form.response_3.data, response_4=form.response_4.data, name=form.name.data,
+                        email=form.email.data, overall_average=overall_average
+                        )
+
         db.session.add(survey)
         db.session.commit()
         survey.event = form.event.data

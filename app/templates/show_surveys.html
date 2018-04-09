@@ -6,25 +6,35 @@
   <table class="table table-striped">
     <thead>
       <tr>
-        <th>ID</th>
+        <th>Topic</th>
+        <th>Date</th>
+        <th>Speakers</th>
         <th>Value</th>
         <th>Speaker</th>
         <th>Content</th>
         <th>Facility</th>
-        <th>Event ID</th>
+        <th>Overall</th>
       </tr>
     </thead>
     <tbody>
-    {% for survey in average_surveys %}
+    {% for survey in surveys %}
       <tr>
-        <td>{{ survey["id"] }}</td>
-        <td>{{ survey["value"] }}</td>
-        <td>{{ survey["speaker"] }}</td>
-        <td>{{ survey["content"] }}</td>
-        <td>{{ survey["facility"] }}</td>
-        <td>{{ survey["event_id"] }}</td>
+        <td>{{ survey.event.topic }}</td>
+        <td>{{ survey.event.date }}</td>
+        <td>{% for speaker in survey.event.speakers %}{{ speaker.first_name }} {{ speaker.last_name }} {% endfor %}</td>
+        <td>{{ '%0.1f' % survey.value_average|float }}</td>
+        <td>{{ '%0.1f' % survey.speaker_average|float }}</td>
+        <td>{{ '%0.1f' % survey.content_average|float }}</td>
+        <td>{{ '%0.1f' % survey.facility_average|float }}</td>
+        <td>{{ '%0.1f' % survey.overall_average|float }}</td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
+  {% if prev_url %}
+        <a class="pull-left" href="{{ prev_url }}">Previous Page</a>
+  {% endif %}
+  {% if next_url %}
+        <a class="pull-right" href="{{ next_url }}">Next Page</a>
+  {% endif %}
 {% endblock %}
