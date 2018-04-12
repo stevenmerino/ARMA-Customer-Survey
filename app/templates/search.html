@@ -2,5 +2,6 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Welcome, {{ current_user.username }}</h1>
+    <h2>Search</h2>
+    {{ wtf.quick_form(form) }}
 {% endblock %}

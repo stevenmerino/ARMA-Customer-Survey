@@ -1,0 +1,73 @@
+{% extends "header.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+  <h3><b>{{ speaker.name }}</b></h3>
+  <p>
+      <b>Email:</b> {{ speaker.email }}<br>
+      <b>Phone:</b> {{ speaker.phone }}<br>
+      <b>Address:</b> {{ speaker.address.street }} {{ speaker.address.city }} {{ speaker.address.state }} {{ speaker.address.zip }}
+  </p><br>
+  <p>
+  <h3>Ratings</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Knowledge</th>
+        <th>Concise</th>
+        <th>Responsive</th>
+        <th>Overall</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ '%0.1f' % speaker.knowledge_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.concise_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.responsive_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.overall_average|float }}</td>
+      </tr>
+    </tbody>
+  </table>
+  </p><br>
+  <p>
+  <h3>Events</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Date</th>
+        <th>Speakers</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for event in speaker.events %}
+      <tr>
+        <td><a href="{{ url_for('show_event', event_id=event.id) }}">{{ event.topic }}</a></td>
+        <td>{{ event.date }}</td>
+        <td>{% for speaker in event.speakers %}<a href="{{ url_for('show_speaker', speaker_id=speaker.id) }}">{{ speaker.first_name }} {{ speaker.last_name }}</a> {% endfor %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </p><br>
+  <p>
+  <h3>Comments</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for comment in speaker.comments %}
+      <tr>
+        <td>{{ comment.author.username }}</td>
+        <td>{{ comment.comment }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </p><br>
+  {{ wtf.quick_form(form) }}
+{% endblock %}

@@ -14,9 +14,9 @@
     <tbody>
     {% for event in events %}
       <tr>
-        <td>{{ event.topic }}</td>
+        <td><a href="{{ url_for('show_event', event_id=event.id) }}">{{ event.topic }}</a></td>
         <td>{{ event.date }}</td>
-        <td>{% for speaker in event.speakers %}{{ speaker.first_name }} {{ speaker.last_name }} {% endfor %}</td>
+          <td>{% for speaker in event.speakers %}<a href="{{ url_for('show_speaker', speaker_id=speaker.id) }}">{{ speaker.first_name }} {{ speaker.last_name }} </a>{% endfor %}</td>
       </tr>
     {% endfor %}
     </tbody>

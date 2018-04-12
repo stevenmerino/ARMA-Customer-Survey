@@ -19,9 +19,9 @@
     <tbody>
     {% for survey in surveys %}
       <tr>
-        <td>{{ survey.event.topic }}</td>
+        <td><a href="{{ url_for('show_event', event_id=survey.event.id) }}">{{ survey.event.topic }}</a></td>
         <td>{{ survey.event.date }}</td>
-        <td>{% for speaker in survey.event.speakers %}{{ speaker.first_name }} {{ speaker.last_name }} {% endfor %}</td>
+        <td>{% for speaker in survey.event.speakers %}<a href="{{ url_for('show_speaker', speaker_id=speaker.id) }}">{{ speaker.first_name }} {{ speaker.last_name }}</a> {% endfor %}</td>
         <td>{{ '%0.1f' % survey.value_average|float }}</td>
         <td>{{ '%0.1f' % survey.speaker_average|float }}</td>
         <td>{{ '%0.1f' % survey.content_average|float }}</td>

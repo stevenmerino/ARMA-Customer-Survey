@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, IntegerField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, IntegerField, SelectField, TextAreaField
 from wtforms.fields.html5 import DateField
 from wtforms_sqlalchemy.fields import QuerySelectMultipleField, QuerySelectField
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo, Length, Regexp, NumberRange
@@ -43,10 +43,10 @@ class SpeakerForm(FlaskForm):
     last_name = StringField("Last Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
     phone = StringField("Phone")
-    street = StringField("Street", validators=[DataRequired()])
-    city = StringField("City", validators=[DataRequired()])
-    state = StringField("State", validators=[DataRequired(), Length(min=2, max=2)])
-    zip = StringField("Zip", validators=[DataRequired()])
+    street = StringField("Street")
+    city = StringField("City")
+    state = StringField("State")
+    zip = StringField("Zip")
     submit = SubmitField("Save")
 
 
@@ -80,12 +80,24 @@ class SurveyForm(FlaskForm):
     facility_1 = IntegerField("The meeting room was clean and comfortable", validators=[NumberRange(min=1,max=5)])
     facility_2 = IntegerField("The quantity and quality of the food was good", validators=[NumberRange(min=1,max=5)])
 
-    response_1 = StringField("If you are not a memeber of ARMA, are you planning to join? If 'No', please share your reason(s)")
+    response_1 = StringField("If you are not a member of ARMA, are you planning to join? If 'No', please share your reason(s)")
     response_2 = StringField("We are constantly looking to improve the quality of the meeting experience for our memebers. We welcome your suggestions")
     response_3 = StringField("Is there another location where you would prefer to meet?")
     response_4 = StringField("Additional Comments")
 
     name = StringField("Name")
-    email = StringField("Email", validators=[Email()])
+    email = StringField("Email")
 
     submit = SubmitField("Save")
+
+
+class SearchForm(FlaskForm):
+    choices = [(1, 'Speaker'), (2, 'Topic'), (3, 'Overall Rating'), (4, 'Comments')]
+    category = SelectField("Search Category", choices=choices)
+    search = StringField("")
+    submit = SubmitField("Search")
+
+
+class CommentForm(FlaskForm):
+    comment = TextAreaField('Comment', validators=[DataRequired()])
+    submit = SubmitField("Post")

@@ -16,5 +16,4 @@ login.login_view = 'login'
 Principal(app)
 bootstrap = Bootstrap(app)
 
-from app import routes, models
-
+from app import routes, models, errors

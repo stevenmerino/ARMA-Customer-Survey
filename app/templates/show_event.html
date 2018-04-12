@@ -1,0 +1,82 @@
+{% extends "header.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
+
+{% block app_content %}
+  <h3><b>{{ event.topic }}</b></h3>
+  <p>
+      <b>Date:</b> {{ event.date }}<br>
+      <b>Address:</b> {{ event.address.street }} {{ event.address.city }} {{ event.address.state }} {{ event.address.zip }}
+  </p><br>
+  <p>
+  <h3>Ratings</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Value</th>
+        <th>Speakers</th>
+        <th>Content</th>
+        <th>Facility</th>
+        <th>Overall</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ '%0.1f' % event.value_average|float }}</td>
+        <td>{{ '%0.1f' % event.speakers_average|float }}</td>
+        <td>{{ '%0.1f' % event.content_average|float }}</td>
+        <td>{{ '%0.1f' % event.facility_average|float }}</td>
+        <td>{{ '%0.1f' % event.overall_average|float }}</td>
+      </tr>
+    </tbody>
+  </table>
+  </p><br>
+  <p>
+  <h3>Speakers</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Knowledge</th>
+        <th>Concise</th>
+        <th>Responsive</th>
+        <th>Overall</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for speaker in event.speakers %}
+      <tr>
+        <td><a href="{{ url_for('show_speaker', speaker_id=speaker.id) }}">{{ speaker.first_name }} {{ speaker.last_name }}</a></td>
+        <td>{{ speaker.email }}</td>
+        <td>{{ speaker.phone }}</td>
+        <td>{{ '%0.1f' % speaker.knowledge_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.concise_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.responsive_average|float }}</td>
+        <td>{{ '%0.1f' % speaker.overall_average|float }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </p><br>
+  <p>
+  <h3>Comments</h3>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Comment</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for comment in event.comments %}
+      <tr>
+        <td>{{ comment.author.username }}</td>
+        <td>{{ comment.comment }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </p><br>
+    {{ wtf.quick_form(form) }}
+{% endblock %}

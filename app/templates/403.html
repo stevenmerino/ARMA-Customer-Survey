@@ -2,5 +2,6 @@
 {% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
-    <h1>Welcome, {{ current_user.username }}</h1>
+    <h3>Permission Denied</h3>
+    <p><br><a href="{{ url_for('index') }}">Back</a><br></p>
 {% endblock %}

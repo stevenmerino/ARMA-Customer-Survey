@@ -7,40 +7,53 @@ from app.forms import RegistrationForm
 from app.forms import AddressForm
 from app.forms import SpeakerForm
 from app.forms import EventForm
-from app.forms import SurveyForm
+from app.forms import SurveyForm, SearchForm, CommentForm
 
 from app.models import User
 from app.models import Address
 from app.models import Speaker
 from app.models import Event
-from app.models import Survey
+from app.models import Survey, Comment
 
 from werkzeug.urls import url_parse
 
 from flask_principal import Identity, AnonymousIdentity, identity_changed
 from flask_principal import identity_loaded, RoleNeed, UserNeed, Permission
 
+from sqlalchemy import cast, String
+
+# Create user permission roles
 admin_permission = Permission(RoleNeed('admin'))
 editor_permission = Permission(RoleNeed('editor'))
 verified_permission = Permission(RoleNeed('verified'))
 
-##### fix wtforms-sqlalchemy query factory bug
+# ---- fix wtforms-sqlalchemy query_factory bug ----
 import wtforms_sqlalchemy.fields as f
+
+
 def get_pk_from_identity(obj):
     cls, key = f.identity_key(instance=obj)[:2]
     return ':'.join(f.text_type(x) for x in key)
-f.get_pk_from_identity = get_pk_from_identity
-#######
 
+
+f.get_pk_from_identity = get_pk_from_identity
+# ---------------------------------------------------
+
+# User - Home page
 @app.route('/')
 @app.route('/index')
 def index():
     if current_user.is_authenticated:
-        return render_template('index.html', title='Home')
+        if current_user.is_admin:
+            return redirect(url_for('admin'))
+        else:
+            return redirect(url_for('search'))
+        #return render_template('index.html', title='Home')
     else:
         return redirect(url_for('login'))
 
 
+# User - Log user in and set identities
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -82,7 +95,7 @@ def login():
 #     addresses = Address.query.all()
 #     return render_template('addresses.html', title='Address List', addresses=addresses)
 
-
+# User - Log out user
 @app.route('/logout')
 def logout():
     logout_user()
@@ -92,6 +105,7 @@ def logout():
     return redirect(url_for('index'))
 
 
+# User - Create a new user
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
@@ -107,13 +121,16 @@ def register():
     return render_template('register.html', title="Register", form=form)
 
 
+# Admin - Display all users
 @app.route('/admin')
+@login_required
 @admin_permission.require(http_exception=403)
 def admin():
     users = User.query.all()
     return render_template('admin.html', title='Admin Dashboard', users=users)
 
 
+# Admin - Toggle user admin permission
 @app.route('/update/admin/<username>')
 @login_required
 @admin_permission.require(http_exception=403)
@@ -124,6 +141,7 @@ def admin_update(username):
     return redirect(url_for('admin'))
 
 
+# Admin - Toggle user editor permission
 @app.route('/update/editor/<username>')
 @login_required
 @admin_permission.require(http_exception=403)
@@ -134,6 +152,7 @@ def editor_update(username):
     return redirect(url_for('admin'))
 
 
+# Admin - Toggle user verified permission
 @app.route('/update/verified/<username>')
 @login_required
 @admin_permission.require(http_exception=403)
@@ -144,6 +163,7 @@ def verified_update(username):
     return redirect(url_for('admin'))
 
 
+# Calculate speaker average ratings
 def update_speaker(speaker):
     knowledge = concise = responsive = count = 0
     for event in speaker.events:
@@ -164,6 +184,23 @@ def update_speaker(speaker):
         db.session.commit()
 
 
+# Verified - Show a single speaker
+@app.route('/show/speakers/<speaker_id>', methods=['GET', 'POST'])
+@login_required
+@verified_permission.require(http_exception=403)
+def show_speaker(speaker_id):
+    speaker = Speaker.query.filter_by(id=speaker_id).first_or_404()
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(author=current_user, comment=form.comment.data, speaker=speaker)
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('show_speaker', speaker_id=speaker_id))
+
+    return render_template('show_speaker.html', title=speaker.name, speaker=speaker, form=form)
+
+
+# Verified - Show all speakers
 @app.route('/show/speakers', methods=['GET', 'POST'])
 @login_required
 @verified_permission.require(http_exception=403)
@@ -177,6 +214,7 @@ def show_speakers():
     return render_template('show_speakers.html', title='Speaker List', speakers=speakers.items, next_url=next_url, prev_url=prev_url)
 
 
+# Editor - Create a new speaker
 @app.route('/add/speaker', methods=['GET', 'POST'])
 @login_required
 @editor_permission.require(http_exception=403)
@@ -196,9 +234,50 @@ def add_speaker():
     return render_template('add_speaker.html', title='Add Speaker', form=form)
 
 
+# Calculate event average ratings
+def update_event(event):
+    value = speaker = content = facility = overall = count = 0
+    for survey in event.survey:
+        count += 1
+        value += survey.value_average
+        speaker += survey.speaker_average
+        content += survey.content_average
+        facility += survey.facility_average
+        overall += survey.overall_average
+    if count is not 0:
+        value = value / count
+        speaker = speaker / count
+        content = content / count
+        facility = facility / count
+        overall = (value + speaker + content + facility) / 4
+        event.value_average = value
+        event.speakers_average = speaker
+        event.content_average = content
+        event.facility_average = facility
+        event.overall_average = overall
+        db.session.commit()
+
+
+# Verified - Show a single event
+@app.route('/show/events/<event_id>', methods=['GET', 'POST'])
+@login_required
+@verified_permission.require(http_exception=403)
+def show_event(event_id):
+    event = Event.query.filter_by(id=event_id).first_or_404()
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(author=current_user, comment=form.comment.data, event=event)
+        db.session.add(comment)
+        db.session.commit()
+        return redirect(url_for('show_event', event_id=event_id))
+
+    return render_template('show_event.html', title=event.topic, event=event, form=form)
+
+
+# Verified - Show all events
 @app.route('/show/events', methods=['GET', 'POST'])
 @login_required
-@editor_permission.require(http_exception=403)
+@verified_permission.require(http_exception=403)
 def show_events():
     page = request.args.get('page', 1, type=int)
     events = Event.query.order_by(Event.date.desc()).paginate(page, app.config['ITEMS_PER_PAGE'], False)
@@ -207,10 +286,12 @@ def show_events():
     return render_template('show_events.html', title='Event List', events=events.items, next_url=next_url, prev_url=prev_url)
 
 
+# Query factory for EventForm QuerySelectMultipleField
 def speaker_query():
-    return Speaker.query
+    return Speaker.query.order_by(Speaker.last_name.asc())
 
 
+# Editor - Create a new event
 @app.route('/add/event', methods=['GET', 'POST'])
 @login_required
 @editor_permission.require(http_exception=403)
@@ -231,9 +312,10 @@ def add_event():
     return render_template('add_event.html', title='Add Event', form=form)
 
 
+# Verified - Show all surveys
 @app.route('/show/surveys', methods=['GET', 'POST'])
 @login_required
-@editor_permission.require(http_exception=403)
+@verified_permission.require(http_exception=403)
 def show_surveys():
     page = request.args.get('page', 1, type=int)
     surveys = Survey.query.order_by(Survey.id.desc()).paginate(page, app.config['ITEMS_PER_PAGE'], False)
@@ -242,11 +324,12 @@ def show_surveys():
     return render_template('show_surveys.html', title='Survey List', surveys=surveys.items, next_url=next_url, prev_url=prev_url)
 
 
-
+# Query factory for SurveyForm QuerySelectField
 def event_query():
-    return Event.query
+    return Event.query.order_by(Event.id.desc())
 
 
+# Editor - Create a new survey
 @app.route('/add/survey', methods=['GET', 'POST'])
 @login_required
 @editor_permission.require(http_exception=403)
@@ -273,11 +356,61 @@ def add_survey():
         db.session.commit()
         survey.event = form.event.data
         db.session.commit()
+
+        for speaker in survey.event.speakers:
+            update_speaker(speaker)
+
+        update_event(survey.event)
+
         flash("Survey Saved.")
         return redirect(url_for('index'))
     return render_template('add_survey.html', title='Add Survey', form=form)
 
 
+# Verified - Create a search request
+@app.route('/search', methods=['GET', 'POST'])
+@login_required
+@verified_permission.require(http_exception=403)
+def search():
+    search = SearchForm(request.form)
+    if request.method == 'POST':
+        return search_results(search)
+    return render_template('search.html', form=search)
+
+
+# Verified - Display search results
+@login_required
+@verified_permission.require(http_exception=403)
+def search_results(search):
+    results = []
+    search_string = search.data['search']
+    result_type = ''
+
+    if search_string:
+        if search.data['category'] == '1':
+            results = db.session.query(Speaker).filter(Speaker.name.contains(search_string))
+            result_type = 'speaker'
+        elif search.data['category'] == '2':
+            results = db.session.query(Event).filter(Event.topic.contains(search_string))
+            result_type = 'event'
+        elif search.data['category'] == '3':
+            results = db.session.query(Speaker).filter(cast(Speaker.overall_average, String()).like(search_string + '%'))
+            result_type = 'speaker'
+        elif search.data['category'] == '4':
+            results = db.session.query(Speaker).filter(Speaker.comments.any(Comment.comment.contains(search_string)))
+            result_type = 'speaker'
+
+    if results.count() == 0:
+        flash('No results found.')
+        return redirect(url_for('search'))
+    else:
+        if result_type == 'event':
+            return render_template('show_events.html', title='Search', events=results)
+        elif result_type == 'speaker':
+            return render_template('show_speakers.html', title='Search', speakers=results)
+
+
+# Create identities for permission system
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
     identity.user = current_user

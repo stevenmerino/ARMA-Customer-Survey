@@ -1,12 +1,22 @@
 from app import db, login
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from sqlalchemy.orm import column_property
 
 
 event_speakers = db.Table('event_speakers',
                           db.Column('event_id', db.Integer, db.ForeignKey('event.id')),
                           db.Column('speaker_id', db.Integer, db.ForeignKey('speaker.id'))
                           )
+
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    comment = db.Column(db.String(144), index=True)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
+    speaker_id = db.Column(db.Integer, db.ForeignKey('speaker.id'))
 
 
 class Address(db.Model):
@@ -24,6 +34,7 @@ class Speaker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(64), index=True)
     last_name = db.Column(db.String(64), index=True)
+    name = column_property(first_name + ' ' + last_name)
     email = db.Column(db.String(120), index=True)
     phone = db.Column(db.String(120))
 
@@ -34,6 +45,8 @@ class Speaker(db.Model):
     concise_average = db.Column(db.Float)
     responsive_average = db.Column(db.Float)
     overall_average = db.Column(db.Float)
+
+    comments = db.relationship('Comment', backref='speaker')
 
     def __repr__(self):
         return '{} {}'.format(self.first_name, self.last_name)
@@ -50,6 +63,14 @@ class Event(db.Model):
                                secondary=event_speakers, backref=db.backref('events', lazy='dynamic')
                                )
     survey = db.relationship('Survey', back_populates='event')
+
+    value_average = db.Column(db.Float)
+    speakers_average = db.Column(db.Float)
+    content_average = db.Column(db.Float)
+    facility_average = db.Column(db.Float)
+    overall_average = db.Column(db.Float)
+
+    comments = db.relationship('Comment', backref='event', lazy='dynamic')
 
     def __repr__(self):
         return '{} - {}'.format(self.topic, self.date)
@@ -95,9 +116,12 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+
     is_admin = db.Column(db.Boolean, default=False)
     is_editor = db.Column(db.Boolean, default=False)
     is_verified = db.Column(db.Boolean, default=False)
+
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
